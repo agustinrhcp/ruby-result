@@ -2,7 +2,8 @@ require './result'
 
 def whats_the_best_starter_pokemon?(string)
   validate_input_is_a_string(string)
-    .map { |string| string.strip.downcase }
+    .map(&:strip)
+    .map(&:downcase)
     .then { |string| validate_is_a_starter(string) }
     .then { |string| validate_is_not_bulbasaur(string) }
     .when_ok { |string| "You are right, #{string.capitalize} is the best starter" }
