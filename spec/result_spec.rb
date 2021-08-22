@@ -140,4 +140,28 @@ describe Result do
       end
     end
   end
+
+  describe '#when_ok.when_error' do
+    let(:result) { Result.ok(:cool) }
+
+    context 'ok result' do
+      subject { result.when_ok(&:itself).when_error { :error } }
+
+      it { is_expected.to eql :cool }
+    end
+
+    context 'error result' do
+      let(:result) { Result.error(:not_cool) }
+
+      subject { result.when_ok { :cool }.when_error(&:itself) }
+
+      it { is_expected.to eql :not_cool }
+    end
+
+    describe 'when_ok' do
+      subject { result.when_ok(&:itself) }
+
+      it { is_expected.to be_kind_of(Result::Case) }
+    end
+  end
 end
