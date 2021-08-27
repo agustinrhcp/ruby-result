@@ -42,15 +42,6 @@ class Result
     end
   end
 
-  def with_default(default)
-    case @result
-    in [:ok, something]
-      yield something
-    else
-      yield default
-    end
-  end
-
   def ok?
     @result.first == :ok
   end
@@ -61,6 +52,26 @@ class Result
 
   def when_ok(&block)
     Case.when_ok(self, &block)
+  end
+
+  def self.combine_map(list)
+    list.reduce(self.ok []) do |acc, item|
+      break acc if acc.error?
+
+      result = yield item
+
+      map2(acc, result) do |acc_list, result_item|
+        acc_list + [result_item]
+      end
+    end
+  end
+
+  def self.map2(first_result, second_result)
+    first_result.then do |first|
+      second_result.then do |second|
+        self.ok yield first, second
+      end
+    end
   end
 
   private

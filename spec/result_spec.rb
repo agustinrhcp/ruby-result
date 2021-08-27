@@ -96,19 +96,6 @@ describe Result do
     end
   end
 
-  describe '#with_default' do
-    let(:result) { described_class.ok(1) }
-    subject { result.with_default(0, &:itself) }
-
-    it { is_expected.to eql 1 }
-
-    context 'with an error result' do
-      let(:result) { described_class.error(1, &:itself) }
-
-      it { is_expected.to eql 0 }
-    end
-  end
-
   describe '#map_error' do
     subject(:mapped) do
       result.map_error { |error| "Oops: #{error}" }
@@ -162,6 +149,41 @@ describe Result do
       subject { result.when_ok(&:itself) }
 
       it { is_expected.to be_kind_of(Result::Case) }
+    end
+  end
+
+  describe '.map2' do
+    subject do
+      Result.map2(Result.ok(2), Result.ok(3)) { |two, three| two + three }
+    end
+
+    it { is_expected.to be_an_ok_result(5) }
+
+    context 'with an error' do
+      subject do
+        Result.map2(Result.ok(2), Result.error(3)) { |two, three| two + three }
+      end
+
+      it { is_expected.to be_an_error_result(3) }
+    end
+  end
+
+  describe '.combine_map' do
+    let(:list) { [1, 3, 5] }
+
+    subject do
+      Result.combine_map(list) do |n|
+        n.odd? ? Result.ok(n) : Result.error(n)
+      end
+    end
+
+    it { is_expected.to be_ok }
+    it { is_expected.to be_an_ok_result([1, 3, 5]) }
+
+    context 'with an error' do
+      let(:list) { [2, 3, 5] }
+
+      it { is_expected.to be_an_error_result(2) }
     end
   end
 end
